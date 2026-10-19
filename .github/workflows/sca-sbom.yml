@@ -45,4 +45,4 @@ jobs:
           curl -sSfL https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 -o /usr/local/bin/osv-scanner
           chmod +x /usr/local/bin/osv-scanner
           echo "Запускаем сканирование..."
-          osv-scanner -r --skip-git ./ || true
+          osv-scanner -r ./ || true
