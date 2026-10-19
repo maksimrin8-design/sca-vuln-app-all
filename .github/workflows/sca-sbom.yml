@@ -38,3 +38,11 @@ jobs:
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
           grype dir:. -o table || true
+      # --- 4. SCA (OSV-Scanner) ---
+      - name: Run OSV-Scanner (Independent)
+        run: |
+          echo "Устанавливаем OSV-Scanner..."
+          curl -sSfL https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 -o /usr/local/bin/osv-scanner
+          chmod +x /usr/local/bin/osv-scanner
+          echo "Запускаем сканирование..."
+          osv-scanner -r --skip-git ./ || true
