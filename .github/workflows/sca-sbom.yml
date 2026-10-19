@@ -1,0 +1,40 @@
+name: SCA and SBOM Analysis
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # --- 1. SBOM (Syft) ---
+      - name: Generate SBOM with Syft
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: sbom.json
+
+      - name: Print SBOM to log
+        run: |
+          echo "=== НАЧАЛО SBOM ==="
+          cat sbom.json
+          echo "=== КОНЕЦ SBOM ==="
+
+      # --- 2. SCA (Trivy) ---
+      - name: Run Trivy (Independent)
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+          echo "Запуск Trivy в оффлайн-режиме..."
+          trivy fs --scanners vuln --format table --severity CRITICAL,HIGH,MEDIUM --offline-scan . || true
+
+      # --- 3. SCA (Grype) ---
+      - name: Run Grype (Independent)
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+          grype dir:. -o table || true
